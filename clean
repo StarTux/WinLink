@@ -1,0 +1,4 @@
+#!/bin/bash
+
+rm -rvf target/ WinLink.jar
+rm -vf files libs

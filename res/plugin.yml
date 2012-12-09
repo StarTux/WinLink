@@ -1,0 +1,14 @@
+name: WinLink
+main: com.winthier.winlink.WinLinkPlugin
+version: 0.1
+author: StarTux
+description: Create a communication link between different Bukkit servers
+commands:
+  winlink:
+    description: General purpose command with subcommands
+    permission: winlink.cmd
+    usage: 'Usage: /<command> [command] [arguments]...'
+permissions:
+  winlink.cmd:
+    description: Execute the winlink command
+    default: op
