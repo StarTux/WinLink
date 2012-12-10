@@ -39,7 +39,6 @@ public class WinLinkPlugin extends JavaPlugin implements WinLink {
         private Server server;
         private Map<String, Client> clients = Collections.synchronizedMap(new LinkedHashMap<String, Client>());
         public static final long PROTOCOL_VERSION = 1;
-        private String serverName;
 
         @Override
         public void onEnable() {
@@ -97,7 +96,18 @@ public class WinLinkPlugin extends JavaPlugin implements WinLink {
         }
 
         public void loadConfiguration() {
-                serverName = getConfig().getString("server.Name");
+                // send server information
+                ConfigurationSection serverSection = getConfig().getConfigurationSection("server");
+                if (serverSection == null) {
+                        serverSection = getConfig().createSection("server");
+                }
+                String serverName = serverSection.getString("Name", "noname");
+                int serverPort = serverSection.getInt("Port", 1337);
+                if (server == null) {
+                        server = new Server(this, serverName);
+                        server.runTaskAsynchronously(this);
+                }
+                server.connect(serverPort, serverName);
                 ConfigurationSection clientsSection = getConfig().getConfigurationSection("clients");
                 if (clientsSection == null) {
                         clientsSection = getConfig().createSection("clients");
@@ -120,18 +130,10 @@ public class WinLinkPlugin extends JavaPlugin implements WinLink {
                         }
                         // send client information
                         ConfigurationSection clientSection = clientsSection.getConfigurationSection(clientName);
-                        String hostname = clientSection.getString("Hostname");
-                        int port = clientSection.getInt("Port");
+                        String hostname = clientSection.getString("Hostname", "localhost");
+                        int port = clientSection.getInt("Port", 1338);
                         client.connect(hostname, port);
                 }
-                // send server information
-                ConfigurationSection serverSection = getConfig().getConfigurationSection("server");
-                int port = serverSection.getInt("Port");
-                if (server == null) {
-                        server = new Server(this);
-                        server.runTaskAsynchronously(this);
-                }
-                server.connect(port, serverName);
         }
 
         public void reloadConfiguration() {
@@ -168,6 +170,6 @@ public class WinLinkPlugin extends JavaPlugin implements WinLink {
 
         @Override
         public String getServerName() {
-                return serverName;
+                return server.getName();
         }
 }

@@ -63,8 +63,9 @@ public class Server extends BukkitRunnable implements MessageRecipient {
         private volatile boolean running = true;
         private AtomicReference<String> status = new AtomicReference<String>("N/A");
 
-        public Server(WinLinkPlugin plugin) {
+        public Server(WinLinkPlugin plugin, String name) {
                 this.plugin = plugin;
+                this.name = name;
         }
 
         public WinLinkPlugin getPlugin() {
