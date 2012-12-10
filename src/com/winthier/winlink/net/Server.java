@@ -60,7 +60,7 @@ public class Server extends BukkitRunnable implements MessageRecipient {
         private long nextId;
         private Set<ServerClientConnection> handshakePending = new HashSet<ServerClientConnection>();
         private Map<String, ServerClientConnection> connections = Collections.synchronizedMap(new LinkedHashMap<String, ServerClientConnection>());
-        private boolean running = true;
+        private volatile boolean running = true;
         private AtomicReference<String> status = new AtomicReference<String>("N/A");
 
         public Server(WinLinkPlugin plugin) {
@@ -83,13 +83,16 @@ public class Server extends BukkitRunnable implements MessageRecipient {
                                 @Override
                                 public void run() {
                                         try {
-                                                keepAlive();
+                                                while (running) {
+                                                        keepAlive();
+                                                        Thread.sleep(5 * 1000);
+                                                }
                                         } catch (Exception e) {
                                                 e.printStackTrace();
                                         }
                                 }
                         };
-                        task.runTaskTimerAsynchronously(plugin, 5L * 20L, 5L * 20L);
+                        task.runTaskAsynchronously(plugin);
                         while (running) {
                                 Object msg = null;
                                 try {
@@ -108,6 +111,7 @@ public class Server extends BukkitRunnable implements MessageRecipient {
                                         plugin.getLogger().warning("Server: Unhandled message type: " + msg.getClass().getName());
                                 }
                         }
+                        running = false;
                         task.cancel();
                         if (socketListener != null) socketListener.shutdown();
                         synchronized (connections) {
@@ -137,6 +141,7 @@ public class Server extends BukkitRunnable implements MessageRecipient {
                 handshakePending.add(connection);
                 connection.runTaskAsynchronously(plugin);
                 connection.sendPacket(new HandshakePacket(WinLinkPlugin.PROTOCOL_VERSION, name));
+                plugin.getLogger().info("Server: connected " + connection.getRemoteHostname() + ":" + connection.getRemotePort());
         }
 
         protected void handleServerConnect(ServerConnectMessage msg) {
@@ -171,6 +176,7 @@ public class Server extends BukkitRunnable implements MessageRecipient {
                 if (!(msg.connection instanceof ServerClientConnection)) return;
                 ServerClientConnection connection = (ServerClientConnection)msg.connection;
                 if (connections.remove(connection.getName()) != null) {
+                        plugin.getLogger().info("Server: disconnected `" + connection.getName() + "' from " + connection.getRemoteHostname() + ":" + connection.getRemotePort() + ": " + msg.cause);
                         plugin.getServer().getPluginManager().callEvent(new ServerDisconnectEvent((ServerConnection)msg.connection, msg.cause));
                         connection.setStatus("Disconnected: " + msg.cause);
                 }
@@ -199,6 +205,7 @@ public class Server extends BukkitRunnable implements MessageRecipient {
                         connection.setName(packet.name);
                         connections.put(packet.name, connection);
                         connection.setStatus("Connected");
+                        plugin.getLogger().info("Server: accepted `" + connection.getName() + "' from " + connection.getRemoteHostname() + ":" + connection.getRemotePort());
                         plugin.getServer().getPluginManager().callEvent(new ServerConnectEvent(connection));
                 } else {
                         return;
