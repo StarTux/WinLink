@@ -39,6 +39,7 @@ public class WinLinkPlugin extends JavaPlugin implements WinLink {
         private Server server;
         private Map<String, Client> clients = Collections.synchronizedMap(new LinkedHashMap<String, Client>());
         public static final long PROTOCOL_VERSION = 1;
+        private String serverName;
 
         @Override
         public void onEnable() {
@@ -96,6 +97,7 @@ public class WinLinkPlugin extends JavaPlugin implements WinLink {
         }
 
         public void loadConfiguration() {
+                serverName = getConfig().getString("server.Name");
                 ConfigurationSection clientsSection = getConfig().getConfigurationSection("clients");
                 if (clientsSection == null) {
                         clientsSection = getConfig().createSection("clients");
@@ -125,12 +127,11 @@ public class WinLinkPlugin extends JavaPlugin implements WinLink {
                 // send server information
                 ConfigurationSection serverSection = getConfig().getConfigurationSection("server");
                 int port = serverSection.getInt("Port");
-                String name = serverSection.getString("Name");
                 if (server == null) {
                         server = new Server(this);
                         server.runTaskAsynchronously(this);
                 }
-                server.connect(port, name);
+                server.connect(port, serverName);
         }
 
         public void reloadConfiguration() {
@@ -167,6 +168,6 @@ public class WinLinkPlugin extends JavaPlugin implements WinLink {
 
         @Override
         public String getServerName() {
-                return server.getName();
+                return serverName;
         }
 }
