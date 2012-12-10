@@ -78,10 +78,15 @@ public class Server extends BukkitRunnable implements MessageRecipient {
         @Override
         public void run() {
                 try {
+                        setStatus("Running");
                         BukkitRunnable task = new BukkitRunnable() {
                                 @Override
                                 public void run() {
-                                        keepAlive();
+                                        try {
+                                                keepAlive();
+                                        } catch (Exception e) {
+                                                e.printStackTrace();
+                                        }
                                 }
                         };
                         task.runTaskTimerAsynchronously(plugin, 5L * 20L, 5L * 20L);
@@ -111,6 +116,7 @@ public class Server extends BukkitRunnable implements MessageRecipient {
                                 }
                         }
                         connections.clear();
+                        setStatus("Shut down");
                 } catch (Exception e) {
                         e.printStackTrace();
                 }
@@ -163,8 +169,10 @@ public class Server extends BukkitRunnable implements MessageRecipient {
 
         protected void handleSocketDisconnected(SocketDisconnectedMessage msg) {
                 if (!(msg.connection instanceof ServerClientConnection)) return;
-                if (connections.remove(((ServerClientConnection)msg.connection).getName()) != null) {
+                ServerClientConnection connection = (ServerClientConnection)msg.connection;
+                if (connections.remove(connection.getName()) != null) {
                         plugin.getServer().getPluginManager().callEvent(new ServerDisconnectEvent((ServerConnection)msg.connection, msg.cause));
+                        connection.setStatus("Disconnected: " + msg.cause);
                 }
         }
 
