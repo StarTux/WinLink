@@ -59,6 +59,8 @@ public class SocketReader extends BukkitRunnable {
                                 Object o = null;
                                 try {
                                         o = input.readObject();
+                                } catch (ClassNotFoundException cnfe) {
+                                        continue;
                                 } catch (SocketTimeoutException ste) {
                                         disconnectCause = DisconnectCause.READ_TIMEOUT;
                                         break;
