@@ -19,7 +19,7 @@
 
 package com.winthier.winlink.net;
 
-import com.winthier.winlink.BukkitRunnable;
+import org.bukkit.scheduler.BukkitRunnable;
 import com.winthier.winlink.ClientConnection;
 import com.winthier.winlink.DisconnectCause;
 import com.winthier.winlink.WinLink;
@@ -164,6 +164,7 @@ public class Client extends BukkitRunnable implements MessageRecipient, ClientCo
                 }
                 connection.sendPacket(new HandshakePacket(WinLinkPlugin.PROTOCOL_VERSION, plugin.getServerName()));
                 setStatus("Connecting");
+                shookHand.set(false);
         }
 
         protected void handleSocketDisconnected(SocketDisconnectedMessage msg) {

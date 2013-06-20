@@ -27,7 +27,7 @@ import com.winthier.winlink.message.SocketDisconnectedMessage;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.SocketTimeoutException;
-import com.winthier.winlink.BukkitRunnable;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * The SocketReader will read packets from a Socket and send them

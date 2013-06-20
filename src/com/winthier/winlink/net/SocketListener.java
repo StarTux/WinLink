@@ -26,7 +26,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import com.winthier.winlink.BukkitRunnable;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * This class takes care of a ServerSocket and listens to it for

@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
-import com.winthier.winlink.BukkitRunnable;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class SocketConnection extends BukkitRunnable implements MessageRecipient {
         protected Socket socket;

@@ -1,4 +1,5 @@
+ConfigFile: ''
 server:
   Name: noname
   Port: 1337
-clients:
+clients: []

@@ -21,6 +21,7 @@ package com.winthier.winlink;
 
 import com.winthier.winlink.net.Client;
 import com.winthier.winlink.net.Server;
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,6 +33,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class WinLinkPlugin extends JavaPlugin implements WinLink {
@@ -102,22 +104,35 @@ public class WinLinkPlugin extends JavaPlugin implements WinLink {
                         serverSection = getConfig().createSection("server");
                 }
                 String serverName = serverSection.getString("Name", "noname");
-                int serverPort = serverSection.getInt("Port", 1337);
+                String configPath = getConfig().getString("ConfigFile", null);
+                ConfigurationSection clientsSection;
+                int serverPort;
+                Set<String> newClients;
+                if (configPath != null && configPath.length() > 0) {
+                        YamlConfiguration config = YamlConfiguration.loadConfiguration(new File(configPath));
+                        clientsSection = config.getConfigurationSection("nodes");
+                        if (clientsSection == null) clientsSection = getConfig().createSection("clients");
+                        serverPort = clientsSection.getInt(serverName + ".Port", 1337);
+                        newClients = clientsSection.getKeys(false);
+                        newClients.remove(serverName);
+                } else {
+                        clientsSection = getConfig().getConfigurationSection("clients");
+                        if (clientsSection == null) clientsSection = getConfig().createSection("clients");
+                        serverPort = serverSection.getInt("Port", 1337);
+                        newClients = clientsSection.getKeys(false);
+                }
                 if (server == null) {
                         server = new Server(this, serverName);
                         server.runTaskAsynchronously(this);
                 }
                 server.connect(serverPort, serverName);
-                ConfigurationSection clientsSection = getConfig().getConfigurationSection("clients");
-                if (clientsSection == null) {
-                        clientsSection = getConfig().createSection("clients");
-                }
-                Set<String> newClients = clientsSection.getKeys(false);
                 // remove obsolete clients
-                for (String clientName : clients.keySet()) {
-                        if (!newClients.contains(clientName)) {
-                                clients.get(clientName).shutdown();
-                                clients.remove(clientName);
+                synchronized (clients) {
+                        for (String clientName : clients.keySet()) {
+                                if (!newClients.contains(clientName)) {
+                                        clients.get(clientName).shutdown();
+                                        clients.remove(clientName);
+                                }
                         }
                 }
                 // add new clients

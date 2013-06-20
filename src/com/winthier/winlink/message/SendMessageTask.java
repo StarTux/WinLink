@@ -20,7 +20,7 @@
 package com.winthier.winlink.message;
 
 import org.bukkit.Bukkit;
-import com.winthier.winlink.BukkitRunnable;
+import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * This class will send a message to a recipient in a seperate

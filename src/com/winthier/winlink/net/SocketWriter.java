@@ -28,7 +28,7 @@ import com.winthier.winlink.message.SocketDisconnectedMessage;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.concurrent.ArrayBlockingQueue;
-import com.winthier.winlink.BukkitRunnable;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public class SocketWriter extends BukkitRunnable implements MessageRecipient {
         protected SocketConnection connection;

@@ -19,7 +19,7 @@
 
 package com.winthier.winlink.net;
 
-import com.winthier.winlink.BukkitRunnable;
+import org.bukkit.scheduler.BukkitRunnable;
 import com.winthier.winlink.ServerConnection;
 import com.winthier.winlink.WinLinkPlugin;
 import com.winthier.winlink.event.ServerConnectEvent;
