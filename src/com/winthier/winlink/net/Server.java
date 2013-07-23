@@ -84,16 +84,13 @@ public class Server extends BukkitRunnable implements MessageRecipient {
                                 @Override
                                 public void run() {
                                         try {
-                                                while (running) {
-                                                        keepAlive();
-                                                        Thread.sleep(5 * 1000);
-                                                }
-                                        } catch (Exception e) {
-                                                e.printStackTrace();
+                                                keepAlive();
+                                        } catch (Throwable t) {
+                                                t.printStackTrace();
                                         }
                                 }
                         };
-                        task.runTaskAsynchronously(plugin);
+                        task.runTaskTimer(plugin, 5 * 20L, 5 * 20L);
                         while (running) {
                                 Object msg = null;
                                 try {
@@ -113,7 +110,7 @@ public class Server extends BukkitRunnable implements MessageRecipient {
                                 }
                         }
                         running = false;
-                        task.cancel();
+                        try { task.cancel(); } catch (IllegalStateException ise) {}
                         if (socketListener != null) socketListener.shutdown();
                         synchronized (connections) {
                                 for (ServerClientConnection connection : connections.values()) {
@@ -122,8 +119,8 @@ public class Server extends BukkitRunnable implements MessageRecipient {
                         }
                         connections.clear();
                         setStatus("Shut down");
-                } catch (Exception e) {
-                        e.printStackTrace();
+                } catch (Throwable t) {
+                        t.printStackTrace();
                 }
         }
 
@@ -208,6 +205,9 @@ public class Server extends BukkitRunnable implements MessageRecipient {
                         connection.setStatus("Connected");
                         plugin.getLogger().info("Server: accepted `" + connection.getName() + "' from " + connection.getRemoteHostname() + ":" + connection.getRemotePort());
                         plugin.getServer().getPluginManager().callEvent(new ServerConnectEvent(connection));
+                        // Connect corresponding client, if any
+                        Client client = plugin.getClientConnection(connection.getName());
+                        if (client != null) client.reconnect(0);
                 } else {
                         return;
                 }

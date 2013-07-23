@@ -90,6 +90,9 @@ public class WinLinkPlugin extends JavaPlugin implements WinLink {
                                 e.printStackTrace();
                                 sender.sendMessage("An error occured while reloading the configuration. See console.");
                         }
+                } else if (args.length == 1 && args[0].equals("reconnect")) {
+                        sender.sendMessage("Attempting to reconnect all client connections");
+                        for (Client client : getClientConnections()) client.reconnect(0);
                 } else {
                         sender.sendMessage("Usage: /winlink [subcommand] ...");
                         sender.sendMessage("Subcommands: status, reload");
@@ -167,14 +170,14 @@ public class WinLinkPlugin extends JavaPlugin implements WinLink {
         }
 
         @Override
-        public Collection<? extends ClientConnection> getClientConnections() {
+        public Collection<? extends Client> getClientConnections() {
                 synchronized(clients) {
-                        return new ArrayList<ClientConnection>(clients.values());
+                        return new ArrayList<Client>(clients.values());
                 }
         }
 
         @Override
-        public ClientConnection getClientConnection(String name) {
+        public Client getClientConnection(String name) {
                 return clients.get(name);
         }
 

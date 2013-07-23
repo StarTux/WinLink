@@ -54,6 +54,7 @@ public class Client extends BukkitRunnable implements MessageRecipient, ClientCo
         private int port = -1;
         private AtomicReference<String> status = new AtomicReference<String>("N/A");
         private AtomicBoolean shookHand = new AtomicBoolean(false);
+        private int connectionAttempts = 0;
 
         public Client(WinLinkPlugin plugin, String name) {
                 this.plugin = plugin;
@@ -128,6 +129,7 @@ public class Client extends BukkitRunnable implements MessageRecipient, ClientCo
                                         setStatus("Name mismatch: " + packet.name);
                                         return;
                                 }
+                                plugin.getLogger().info("Client " + name + ": Connection established");
                                 setStatus("Connected");
                                 shookHand.set(true);
                                 plugin.getServer().getPluginManager().callEvent(new ClientConnectEvent(this));
@@ -138,6 +140,7 @@ public class Client extends BukkitRunnable implements MessageRecipient, ClientCo
         }
 
         protected void handleClientConnect(ClientConnectMessage msg) {
+                connectionAttempts = 0;
                 if (connection != null) {
                         connection.shutdown();
                         connection = null;
@@ -153,13 +156,17 @@ public class Client extends BukkitRunnable implements MessageRecipient, ClientCo
         }
 
         protected void setupConnection() {
+                connectionAttempts += 1;
                 try {
                         Socket socket = new Socket(InetAddress.getByName(hostname), port);
                         connection = new SocketConnection(socket, this);
                         connection.runTaskAsynchronously(plugin);
                 } catch (Exception e) {
-                        setStatus("Connection failed: " + e.getMessage() + ". Retry within 10 seconds");
-                        reconnect(10);
+                        if (connectionAttempts <= 3) {
+                                reconnect(5);
+                        }
+                        plugin.getLogger().warning("Server: connection failed: " + e.getMessage() + ".");
+                        setStatus("Connection failed: " + e.getMessage() + ".");
                         return;
                 }
                 connection.sendPacket(new HandshakePacket(WinLinkPlugin.PROTOCOL_VERSION, plugin.getServerName()));
@@ -171,7 +178,6 @@ public class Client extends BukkitRunnable implements MessageRecipient, ClientCo
                 if (msg.connection != connection) return;
                 connection.shutdown();
                 connection = null;
-                reconnect(10);
                 if (shookHand.getAndSet(false)) {
                         setStatus("Disconnected: " + msg.cause);
                         plugin.getServer().getPluginManager().callEvent(new ClientDisconnectEvent(this, msg.cause));
